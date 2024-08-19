@@ -1,0 +1,7 @@
+elasticsearch-dsl
+Flask
+Flask-Login
+requests
+pymongo
+PyYAML
+bcrypt

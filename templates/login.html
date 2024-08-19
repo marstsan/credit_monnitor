@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Credit Monitor</title>
+    <style>
+        * { font-family: Microsoft JhengHei; }
+        body {background-color: #e0ffe8;}
+        .container {
+            display: flex;
+            justify-content: center; /* 水平居中 */
+            align-items: center; /* 垂直居中 */
+            height: 60vh; /* 設定容器元素高度為視窗高度，確保內容垂直居中 */
+        }
+        .v_space {
+            margin-top: 10px; /* 可以根據需要調整間距大小 */
+        }
+        label { display: inline-block; width: 80px; text-align: right; }
+        input { display: inline-block; width: 150px; }
+        button { display: inline-block; width: 70px; margin-left: 20px;}
+        .error_str { color: red; width: 100%; text-align: center;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <form method="post" action="/login">
+            <label for="username" class="v_space">User:</label>
+                <input type="text" id="username" name="username">
+            <br>
+            <label for="password" class="v_space">Password:</label>
+                <input type="password" id="password" name="password">
+            <br>
+            <label class="v_space"></label>
+            <button type="submit" class="v_space" style="margin-left: 0px;">Login</button>
+            {% if error.login_error|length > 0 %}
+                <p><label class="error_str">{{error.login_error}}</label></p>
+            {% endif %}
+        </form>
+    </div>
+</body>
+</html>

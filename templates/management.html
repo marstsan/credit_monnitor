@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Credit Monitor</title>
+    <style>
+        * { font-family: Microsoft JhengHei; }
+        body {background-color: #e0ffe8;}
+        .top_bar_container { display: flex; justify-content: space-between; background-color: #a0d0ff; height: 35px; align-items: center; padding-right: 10px; padding-left: 10px;
+        padding-right: 10px; }
+
+        .comment_container {display: flex; justify-content: flex-end; padding-right: 10px;}
+        .comment {display: inline-block; width: auto; align-items: right; font-size:10px; color: gray;}
+
+        label { display: inline-block; width: 150px; text-align: right; }
+        input { display: inline-block; width: 200px; }
+        .email_input { display: inline-block; width: 200px; }
+        select { display: inline-block; width: 208px; height: 23px}
+        button { display: inline-block; width: 70px; }
+        .v_space { margin-top: 10px; }
+
+        .table_summary {display: table; width: 830px; border-collapse: collapse;}
+        .table_tr_summary {display: table-row; height: 30px;}
+        .table_th_summary {display: table-cell;font-weight: bold;height: 100%;border: 1px solid gray;text-align: center;vertical-align: middle;background-color:#E5E5E5;}
+        .table_td_summary {display: table-cell; height: 100%;border: 1px solid gray; text-align: center;vertical-align: middle;}
+
+        .error_str { color: red; width: 830px; text-align: center;}
+    </style>
+</head>
+<body>
+    <div class="top_bar_container">
+        <form id="form_back" action="/back" >
+            <button type="submit">&lt; Back</button>
+        </form>
+        <form id="form_logout" action="/logout" >
+            <button type="submit" style="margin-left: 10px;">Logout</button>
+        </form>
+    </div>
+
+    <div class="comment_container">
+        <label class="comment">Recommended resolution: 1920 x 1080</label>
+    </div>
+
+    <form id="form_user_create" action="/create_user" method="POST">
+        <h4>Create new user</h4>
+        <div>
+            <label>Email:</label>
+            <input type="text" name="create_user_email" required="required">
+            <label>Display name:</label>
+            <input type="text" name="create_user_displayname" required="required"><br>
+            <label class="v_space">Password:</label>
+            <input type="password" name="create_user_pwd" required="required">
+            <label>Role:</label>
+            <select id="create_user_role" name="create_user_role">
+                <option value="user" selected>user</option>
+                <option value="admin">admin</option>
+            </select>
+
+            <button type="submit" style="margin-left: 20px;">Create</button>
+            {% if error.create_user_error|length > 0 %}
+                <p><label class="error_str">{{error.create_user_error}}</label></p>
+            {% endif %}
+        </div>
+    </form>
+    <h4>User list</h4>
+    <div class="table_summary">
+        <div class="table_tr_summary">
+            <div class="table_th_summary">Username</div>
+            <div class="table_th_summary">Display Name</div>
+            <div class="table_th_summary">Role</div>
+        </div>
+        {% for user in user_list %}
+            <div class="table_tr_summary">
+                <div class="table_td_summary">{{user.username}}</div>
+                <div class="table_td_summary">{{user.displayname}}</div>
+                <div class="table_td_summary">{{user.role}}</div>
+            </div>
+        {% endfor %}
+    </div>
+</body>
+</html>

@@ -1,0 +1,32 @@
+# kibana info
+ElasticSearch:
+  host: call-elk.tpdev.m800.localnet
+  port: 9200
+  account: sre
+  password: sre-callelk
+
+# send notification to internal chatroom
+CinnoxTool:
+  room_name: credit_monitor
+  room_ID: b84e70ef-b9e9-4240-9fde-88800f9ef6ff@prod-hk-02@1  # credit monitor room
+  account: noc@m800.com
+  password: '!QAZ2wsx3edc'
+
+# mongoDB info
+DBActions:
+  uri: 'mongodb://<username>:<password>@127.0.0.1:27017'
+
+# send email
+SendEmail:
+  default_to:
+    - rickchen@m800.com
+#    - marstseng@m800.com
+#    - brianwong@m800.com
+
+# alert when lower than threshold
+alert threshold:
+  level 1: 0.2
+  level 2: 0.05
+
+# secret key
+key: 3fa1c0e5c3d82408b1e1236c44b906e5

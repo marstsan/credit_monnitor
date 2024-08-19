@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Credit Monitor</title>
+    <style>
+        * { font-family: Microsoft JhengHei; }
+        .top_bar_container { display: flex; justify-content: right; background-color: #a0d0ff; height: 35px; align-items: center; padding-right: 10px;}
+        body {background-color: #e0ffe8;}
+
+        .comment_container {display: flex; justify-content: flex-end; padding-right: 10px;}
+        .comment {display: inline-block; width: auto; align-items: right; font-size:10px; color: gray;}
+
+        label { display: inline-block; width: 150px; text-align: right; }
+        input { display: inline-block; width: 150px; }
+        .email_input { display: inline-block; width: 200px; }
+        select { display: inline-block; width: 158px; }
+        button { display: inline-block; width: 70px; }
+        input[type="radio"] {display:inline}
+        .error_str { color: red; width: 100%; text-align: left;}
+        .table_summary {display: table; width: 100%; border-collapse: collapse;}
+        .table_tr_summary {display: table-row; height: 30px;}
+        .table_th_summary {display: table-cell;font-weight: bold;height: 100%;border: 1px solid gray;text-align: center;vertical-align: middle;background-color:#E5E5E5;}
+        .table_td_summary {display: table-cell; height: 100%;border: 1px solid gray; text-align: center;vertical-align: middle;}
+        .table {display: table; width: 100%; border-collapse: collapse;}
+        .table-tr {display: table-row; height: 30px;}
+        .table-th {display: table-cell;font-weight: bold;height: 100%;border: 1px solid gray;text-align: center;vertical-align: middle;background-color:#E5E5E5;}
+        .table-td {display: table-cell; height: 100%;border: 1px solid gray; text-align: center;vertical-align: middle; white-space: pre-line;}
+        .table-td_description {display: table-cell; height: 100%;border: 1px solid gray; text-align: left;vertical-align: middle; white-space: pre-line;
+                               padding-left: 15px; white-space: pre;}
+
+        /* 開關的部分 */
+        /* The switch - the box around the slider */
+        .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+
+        /* Hide default HTML checkbox */
+        .switch input { opacity: 0; width: 0; height: 0; }
+
+        /* The slider */
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; -webkit-transition: .4s; transition: .4s; }
+
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; -webkit-transition: .4s; transition: .4s; }
+
+        input:checked + .slider { background-color: #2196F3; }
+
+        input:focus + .slider { box-shadow: 0 0 1px #2196F3; }
+
+        input:checked + .slider:before { -webkit-transform: translateX(20px); -ms-transform: translateX(20px); transform: translateX(20px); }
+
+        /* Rounded sliders */
+        .slider.round { border-radius: 34px; }
+
+        .slider.round:before { border-radius: 50%; }
+
+        /* 更改密碼的部分 */
+        /* 隱藏 modal */
+        .modal { display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0, 0, 0, 0.4); }
+
+        /* modal 的內容 */
+        .modal-content { background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 400px; }
+
+        /* 關閉按鈕 */
+        .close { float: right; font-size: 20px; font-weight: bold; }
+
+        .close:hover,
+        .close:focus { color: #000; text-decoration: none; cursor: pointer; }
+
+        .v_space { margin-top: 10px; }
+        .blue { color: blue; }
+    </style>
+</head>
+<body>
+    <!-- 引入 jQuery 庫 -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <div>
+        <!-- top bar -->
+        <div class="top_bar_container">
+            <form id="form_management" action="/management" style="display: inline-block;">
+                {% if current_user.role == "admin" %}
+                    <button type="submit" style="width: 100px;">Management</button>
+                {% endif %}
+            </form>
+            <form>
+                <button id="change_pwd" style="margin-left: 10px; width: 130px;">Change Password</button>
+            </form>
+            <form id="form_logout" action="/logout" style="display: inline-block;">
+
+                <button type="submit" style="margin-left: 10px;">Logout</button>
+            </form>
+        </div>
+
+        <div class="comment_container">
+            <label class="comment">Recommended resolution: 1920 x 1080</label>
+        </div>
+
+        <div class="modal" id="myModal">
+            <div class="modal-content">
+                <form id="form_change_pwd" action="/change_pwd" method="POST">
+                    <span class="close" id="close_modal_button">&times;</span>
+                    <label class="v_space">Input Password:</label>
+                    <input type="password" name="pwd1" required="required"><br>
+                    <label class="v_space">Input again:</label>
+                    <input type="password" name="pwd2" required="required"><br>
+                    <label class="v_space"></label>
+                    <button id="submit_button" type="submit" style="margin-top: 10px;">Submit</button>
+                </form>
+            </div>
+        </div>
+        {% if error.change_pwd_error|length > 0 %}
+            <p><label class="error_str" style="text-align: center;">{{error.change_pwd_error}}</label></p>
+        {% endif %}
+        <!-- 建立 toll-free 和對應的 service ID -->
+        <form id="form_create" action="/create_tf" method="POST">
+            <h4>Create new Toll-free number</h4>
+            <div>
+                <label>Service ID:</label>
+                <input type="text" name="create_service_ID" required="required">
+                <label>Toll-free Number:</label>
+                <input type="text" name="create_tf_number" required="required">
+                <label>Email:</label>
+                <input class="email_input" type="text" name="create_tf_email" required="required" value="{{current_user.id}}">
+                <button type="submit" style="margin-left: 20px;">Create</button>
+                {% if error.create_error|length > 0 %}
+                <p><label class="error_str">{{error.create_error}}</label></p>
+                {% endif %}
+            </div>
+        </form>
+
+        <!-- 查詢 toll-free -->
+        <form id="form_query" action="/main" method="POST">
+            <h4>Query Service</h4>
+            <div>
+                <label>Service ID:</label>
+                <select id="query_service_ID" name="query_service_ID" required="required">
+                    <option value="default" selected>--- Select ---</option>
+                        {% for item in service_ID_list %}
+                            <option value="{{ item }}">{{ item }}</option>
+                        {% endfor %}
+                </select>
+<!--                <label>Toll-free Number:</label>-->
+<!--                <select id="query_tf_number" name="query_tf_number" required="required">-->
+<!--                </select>-->
+    <!--            <button type="button" onclick="submit_update()" style="margin-left: 20px;">Create</button>-->
+                <button type="submit" style="margin-left: 20px;">Query</button>
+                {% if error.select_service_error|length > 0 %}
+                    <p><label class="error_str">{{error.select_service_error}}</label></p>
+                {% endif %}
+            </div>
+        </form>
+
+        <!-- summary and update -->
+        <form id="form_summary" action="/update_tf" method="POST">
+            {% if summary|length > 0 %}
+                <h4>Service summary</h4>
+                <div class="table_summary">
+                    <div class="table_tr_summary">
+                        <div class="table_th_summary">Service ID</div>
+                        <div class="table_th_summary">Balance</div>
+                        <div class="table_th_summary">Top Up</div>
+                        <div class="table_th_summary">Top Up Ticket (optional)</div>
+                        <div class="table_th_summary">Alert(%)</div>
+                        <div class="table_th_summary">Notification</div>
+                        <div class="table_th_summary">Update Time</div>
+                        <div class="table_th_summary">Email</div>
+                    </div>
+                    <div class="table_tr_summary">
+                        <div class="table_td_summary">{{summary.service_ID}}</div>
+                        <div class="table_td_summary">{{summary.balance}}</div>
+                        <div class="table_td_summary">
+                            <input type="text" name="topup_edit" value="0"><br>
+                        </div>
+                        <div class="table_td_summary">
+                            <input type="text" name="topup_ticket_edit" value=""><br>
+                        </div>
+                        <div class="table_td_summary">
+                            <input type="text" name="alert_edit" value="{{summary.alert}}">
+                        </div>
+                        <div class="table_td_summary">
+                            <label class="switch">
+                                <input type="checkbox" name="notification_switch" {% if summary.notification %}checked{% endif %}>
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="table_td_summary">{{summary.update_time}}</div>
+                        <div class="table_td_summary">{{summary.email}}</div>
+                    </div>
+                </div>
+                <br>
+
+                <div class="table_summary">
+                    <div class="table_tr_summary">
+                        <div class="table_th_summary">Toll-free number</div>
+                        <div class="table_th_summary">Inbound Rate</div>
+                        <div class="table_th_summary">Outbound Rate</div>
+                        <div class="table_th_summary">Enable</div>
+                        <div class="table_th_summary">Update Time</div>
+                        <div class="table_th_summary">Last Charge Time</div>
+                    </div>
+                    {% for number in number_info_list %}
+                        <div class="table_tr_summary">
+                            <div class="table_td_summary">{{number.number}}</div>
+                            <div class="table_td_summary">
+                                <input type="text" name="rate_in_edit" value="{{number.rate_in}}">
+                            </div>
+                            <div class="table_td_summary">
+                                <input type="text" name="rate_out_edit" value="{{number.rate_out}}">
+                            </div>
+                            <div class="table_td_summary">
+                                <label class="switch">
+                                    <input type="checkbox" name="enable_switch_{{ loop.index }}" {% if number.enabled %}checked{% endif %}>
+<!--                                    <input type="hidden" name="enable_switch_{{ loop.index }}" value="off"> &lt;!&ndash; Hidden input for unchecked state &ndash;&gt;-->
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+                            <div class="table_td_summary">{{number.update_time}}</div>
+                            <div class="table_td_summary">{{number.last_charge_time}}</div>
+                        </div>
+                    {% endfor %}
+                </div>
+                <p><button type="submit" style="margin-left: 0px;">Update</button></p>
+            {% endif %}
+            {% if error.topup_error|length > 0 %}
+                <p><label class="error_str">{{error.topup_error}}</label></p>
+            {% endif %}
+        </form>
+
+        <!-- events -->
+        <br>
+        <form id="form_events" action="/more_events" method="POST">
+            {% if events|length > 0 %}
+                <h4 style="display: inline-block;">Last 20 events</h4>
+                <button type="submit" style="margin-left: 20px; width: 80px;">See more</button>
+                <div class="table_summary">
+                    <div class="table_tr_summary">
+                        <div class="table_th_summary">Time</div>
+                        <div class="table_th_summary">Type</div>
+                        <div class="table_th_summary">Description</div>
+                    </div>
+                    {% for event in events %}
+                        <div class="table_tr_summary">
+                            <div class="table-td">{{event.time}}</div>
+                            <div class="table-td">{{event.type}}</div>
+                            <div class="table-td_description">{{event.description}}</div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </form>
+    </div>
+    <script>
+        // 自動更新 tf number 下拉選單
+        $(document).ready(function() {
+            $('#query_service_ID__').change(function() {
+                var selectedValue = $(this).val();
+
+                $.ajax({
+                    url: '/get_tf_dropdown_options',
+                    type: 'POST',
+                    data: { selectedValue: selectedValue },
+                    success: function(response) {
+                        var options = response.options;
+                        var query_tf_number = $('#query_tf_number');
+
+                        query_tf_number.empty();
+
+                        console.log(options.length)
+                        for (var i = 0; i < options.length; i++) {
+                            var option = $('<option>');
+                            option.val(options[i]);
+                            option.text(options[i]);
+                            query_tf_number.append(option);
+                        }
+                    }
+                });
+            });
+        });
+
+        // 當按鈕被點擊時，顯示 modal
+        document.getElementById("change_pwd").addEventListener("click", function() {
+            event.preventDefault(); // 阻止按鈕的預設行為
+            document.getElementById("myModal").style.display = "block";
+        });
+
+        // 當關閉按鈕被點擊時，隱藏 modal
+        document.getElementById("close_modal_button").addEventListener("click", function() {
+            document.getElementById("myModal").style.display = "none";
+        });
+
+        // 當在 modal 內按下 ESC 鍵，隱藏 modal
+        window.addEventListener("keydown", function(event) {
+            if (event.key === "Escape") {
+                document.getElementById("myModal").style.display = "none";
+            }
+        });
+
+
+    </script>
+</body>
+</html>

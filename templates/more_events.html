@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Credit Monitor</title>
+    <style>
+        * { font-family: Microsoft JhengHei; }
+        body {background-color: #e0ffe8;}
+        .top_bar_container { display: flex; justify-content: space-between; background-color: #a0d0ff; height: 35px; align-items: center; padding-right: 10px; padding-left: 10px;
+        padding-right: 10px; }
+        .comment_container {display: flex; justify-content: flex-end; padding-right: 10px;}
+        .comment {display: inline-block; width: auto; align-items: right; font-size:10px; color: gray;}
+        label { display: inline-block; width: 150px; text-align: right; }
+        input { display: inline-block; width: 200px; }
+        .email_input { display: inline-block; width: 200px; }
+        select { display: inline-block; width: 208px; height: 23px}
+        button { display: inline-block; width: 70px; }
+        .v_space { margin-top: 10px; }
+        .label_value { text-align: left; }
+
+        .type_checkbox {width: auto; margin-left: 30px;}
+
+        #balance_chart_container {display: flex; align-items: center; justify-content: center;}
+        .balance_chart {width: 80%; background-color: #f9f5e5}
+
+        .table_summary {display: table; width: 100%; border-collapse: collapse;}
+        .table_tr_summary {display: table-row; height: 30px;}
+        .table_th_summary {display: table-cell;font-weight: bold;height: 100%;border: 1px solid gray;text-align: center;vertical-align: middle;background-color:#E5E5E5;}
+        .table_td_summary {display: table-cell; height: 100%;border: 1px solid gray; text-align: center;vertical-align: middle;}
+        .table-td {display: table-cell; height: 100%;border: 1px solid gray; text-align: center;vertical-align: middle; white-space: pre-line;}
+        .table-td_description {display: table-cell; height: 100%;border: 1px solid gray; text-align: left;vertical-align: middle; white-space: pre-line;
+                               padding-left: 15px; white-space: pre;}
+
+        .error_str { color: red; width: 830px; text-align: center;}
+    </style>
+    <script>
+        function toggleDateInput() {
+            var dateCheckbox = document.getElementsByName("date_checkbox")[0];
+            var startDateInput = document.getElementById("start_date_input");
+            var endDateInput = document.getElementById("end_date_input");
+
+            startDateInput.disabled = dateCheckbox.checked;
+            endDateInput.disabled = dateCheckbox.checked;
+        }
+
+        // 首次加载时调用 toggleDateInput() 函数
+        //toggleDateInput();
+    </script>
+</head>
+<body>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <div class="top_bar_container">
+        <form id="form_back" action="/back" >
+            <button type="submit">&lt; Back</button>
+        </form>
+        <form id="form_logout" action="/logout" >
+            <button type="submit" style="margin-left: 10px;">Logout</button>
+        </form>
+    </div>
+    <div class="comment_container">
+        <label class="comment">Recommended resolution: 1920 x 1080</label>
+    </div>
+    <h4>[{{service_ID}}] {{tf_number}}</h4>
+    <form id="form_more_events_query" action="/more_events_query" method="POST">
+        <label>Start Date:</label>
+        <input type="date" name="start_date" id="start_date_input" value="{{start_date}}" {% if selected_date_range == "date_checked" %}disabled{% endif %}>
+        <label>End Date:</label>
+        <input type="date" name="end_date" id="end_date_input" value="{{end_date}}" {% if selected_date_range == "date_checked" %}disabled{% endif %}>
+        <input type="checkbox" name="date_checkbox" value="date_checked" onchange="toggleDateInput()" class="type_checkbox" {% if selected_date_range == "date_checked" %}checked{% endif %}>No date range
+        <br>
+        <label class="v_space">Type:</label>
+        <input type="checkbox" name="Create" value="Create" class="type_checkbox" style="margin-left: 0px" {% if event_types_checked_status.Create %}checked{% endif %}>Create
+        <input type="checkbox" name="Top up" value="Top up" class="type_checkbox" {% if event_types_checked_status.Topup %}checked{% endif %}>Top up
+        <input type="checkbox" name="Update" value="Update" class="type_checkbox" {% if event_types_checked_status.Update %}checked{% endif %}>Update
+        <input type="checkbox" name="Charge" value="Charge" class="type_checkbox" {% if event_types_checked_status.Charge %}checked{% endif %}>Charge
+        <input type="checkbox" name="Notify" value="Notify" class="type_checkbox" {% if event_types_checked_status.Notify %}checked{% endif %}>Notify
+        <br><label></label>
+        <button type="submit" name="query" class="v_space">Query</button>
+        {% if error.query_event_error|length > 0 %}
+            <p><label class="error_str">{{error.create_user_error}}</label></p>
+        {% endif %}
+    </form>
+    <br>
+    <form id="form_events" action="" method="POST">
+        {% if x|length > 0 %}
+            <h4>Balance line chart</h4>
+            <div id="balance_chart_container">
+                <canvas id="balance_chart" class="balance_chart" height="400"></canvas>
+                <script>
+                    // Get data from Flask
+                    var list1 = {{ x | tojson }};
+                    var list2 = {{ y | tojson }};
+                    var list3 = {{ notify | tojson }};
+
+                    // 警報線
+
+
+                    // Create a chart using Chart.js
+                    var ctx = document.getElementById('balance_chart').getContext('2d');
+                    var balance_chart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: list1,
+                            datasets: [{
+                                label: 'Balance',
+                                data: list2,
+                                borderColor: 'blue',
+                                borderWidth: 2,
+                                pointRadius: 0                            },
+                            {
+                                label: 'Alert',
+                                data: list3,
+                                borderColor: 'red',
+                                borderWidth: 1.5,
+                                pointRadius: 0
+                            }]
+                        },
+                        options: {
+                            responsive: false,
+                            scales: {
+                                x: {
+                                    display: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Time'
+                                    }
+                                },
+                                y: {
+                                    display: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Balance'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                </script>
+            </div>
+        {% endif %}
+        <h4>Events</h4>
+        {% if events|length > 0 %}
+            <div class="table_summary">
+                <div class="table_tr_summary">
+                    <div class="table_th_summary">Time</div>
+                    <div class="table_th_summary">Type</div>
+                    <div class="table_th_summary">Description</div>
+                </div>
+                {% for event in events %}
+                    <div class="table_tr_summary">
+                        <div class="table-td">{{event.time}}</div>
+                        <div class="table-td">{{event.type}}</div>
+                        <div class="table-td_description">{{event.description}}</div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <label style="width: 100%; text-align: center;">No event records can be found.</label>
+        {% endif %}
+    </form>
+</body>
+</html>
